@@ -1,25 +1,34 @@
 # intercom-exporter-node
+This is a fork from intercom-exporter-node by kevin Goedecke
 
-This script allows you to export all conversations from Intercom using Node.
 
-Conversations get saved to a JSONL ([JSON Lines](https://jsonlines.org/)) file in order to fine tune a ChatGPT model. All conversations are stripped down to the initial questions and the very first reply.
+# Exporting Conversations from Intercom
 
-The JSON Lines file has the following structure:
+To export all conversations from Intercom, follow these steps:
 
-```json
-{ "prompt": "<prompt text>", "completion": "<ideal generated text>" }
+## 1. Retrieve Conversation URLs in Batches
+
+Get all the conversations' URLs in batches of 20. The URLs will look like this:
+
+```markdown
+https://api.intercom.io/conversations?starting_after=WzE3MDYwODc0MDgwMDAsOTc1NDcxMTM5NTQ3ODAsMl0=
 ```
 
-## Setup
+Store these URLs, taking into consideration the rate limit managed by the script. Retrieving each URL may take up to 4 seconds.
 
-Get your Intercom API access token as described here: https://developers.intercom.com/building-apps/docs/authentication-types#access-tokens
+## 2. Query and Save Conversation Data
 
-Create a `.env` file based on the values in `.env.example`.
+Once you have all the URLs, query each URL individually and save the result. Use the following code snippet:
 
-Then run `yarn start`.
+```javascript
+const data = await getNextPages(conversationURL);
 
-A file called `output.jsonl` will be created in the output directory that you've specified in your `.env` file.
+console.log(`On ${conversationURL}, there's ${data.data.conversations.length} conversation / ids`);
 
-## Copyright
+console.log(JSON.stringify(data.data.conversations[0], null, 2));
+```
 
-(c) 2023 Kevin Goedecke
+In this code, the first conversation of a given page is retrieved. Add a loop to save the conversation data somewhere. Consider using a NO SQL database to store the data, making it easier to export and clean later on.
+
+
+
